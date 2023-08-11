@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     branches:
-      - master
+      - main
 
 env:
   GIT_USER_EMAIL: ${{ secrets.GIT_EMAIL }}
