@@ -36,7 +36,7 @@ func TestGateway_invoke(t *testing.T) {
 		}
 
 		assert.NoError(t, err)
-		assert.JSONEq(t, `{"body":"Hello World from Go\n", "cookies":null, "headers":{"Content-Type":"text/plain; charset=utf8"}, "multiValueHeaders":{}, "statusCode":200}`, string(res))
+		assert.JSONEq(t, `{"body":"Hello World from Go\n", "headers":{"Content-Type":"text/plain; charset=utf8"}, "isBase64Encoded":false, "multiValueHeaders":{}, "statusCode":200}`, string(res))
 	})
 
 	t.Run("should execute api gateway v2", func(t *testing.T) {
@@ -60,7 +60,7 @@ func TestGateway_invoke(t *testing.T) {
 		}
 
 		assert.NoError(t, err)
-		assert.JSONEq(t, `{"body":"Hello World from Go\n", "cookies":null, "headers":{"Content-Type":"text/plain; charset=utf8"}, "multiValueHeaders":{}, "statusCode":200}`, string(res))
+		assert.JSONEq(t, `{"body":"Hello World from Go\n", "cookies":null, "headers":{"Content-Type":"text/plain; charset=utf8"}, "isBase64Encoded":false, "multiValueHeaders":{}, "statusCode":200}`, string(res))
 	})
 
 	t.Run("should get error bay error parsing path on v1", func(t *testing.T) {
@@ -75,7 +75,7 @@ func TestGateway_invoke(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, request.ErrParsingPathFailed)
-		assert.Equal(t, gw.defaultResponse, res)
+		assert.Equal(t, gw.defaultResponse.ToV1Map(), res)
 	})
 
 	t.Run("should get error bay error parsing path on v2", func(t *testing.T) {
@@ -95,6 +95,6 @@ func TestGateway_invoke(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, request.ErrParsingPathFailed)
-		assert.Equal(t, gw.defaultResponse, res)
+		assert.Equal(t, gw.defaultResponse.ToV2Map(), res)
 	})
 }

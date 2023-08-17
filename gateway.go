@@ -75,16 +75,18 @@ func (gw *Gateway[T]) Start() (err error) {
 	return nil
 }
 
-func (gw *Gateway[T]) invoke(ctx context.Context, evt T) (types.APIGatewayResponse, error) {
+func (gw *Gateway[T]) invoke(ctx context.Context, evt T) (map[string]any, error) {
 	aux := any(evt)
 
 	switch v := aux.(type) {
 	case events.APIGatewayProxyRequest:
-		return gw.handlerV1(ctx, v)
+		res, err := gw.handlerV1(ctx, v)
+		return res.ToV1Map(), err
 	case events.APIGatewayV2HTTPRequest:
-		return gw.handlerV2(ctx, v)
+		res, err := gw.handlerV2(ctx, v)
+		return res.ToV2Map(), err
 	default:
-		return gw.defaultResponse, ErrInvalidAPIGatewayRequest
+		return gw.defaultResponse.ToV1Map(), ErrInvalidAPIGatewayRequest
 	}
 }
 
