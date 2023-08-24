@@ -16,6 +16,8 @@ import (
 const testPath = "/pets/luna"
 
 func hello(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Custom-Header", "custom-value")
+
 	_, _ = fmt.Fprintln(w, "Hello World from Go")
 }
 
@@ -36,7 +38,7 @@ func TestGateway_invoke(t *testing.T) {
 		}
 
 		assert.NoError(t, err)
-		assert.JSONEq(t, `{"body":"Hello World from Go\n", "headers":{"Content-Type":"text/plain; charset=utf8"}, "isBase64Encoded":false, "multiValueHeaders":{}, "statusCode":200}`, string(res))
+		assert.JSONEq(t, `{"body":"Hello World from Go\n", "headers":{"Content-Type":"text/plain; charset=utf8", "Custom-Header":"custom-value"}, "isBase64Encoded":false, "multiValueHeaders":{}, "statusCode":200}`, string(res))
 	})
 
 	t.Run("should execute api gateway v2", func(t *testing.T) {
@@ -60,7 +62,7 @@ func TestGateway_invoke(t *testing.T) {
 		}
 
 		assert.NoError(t, err)
-		assert.JSONEq(t, `{"body":"Hello World from Go\n", "cookies":null, "headers":{"Content-Type":"text/plain; charset=utf8"}, "isBase64Encoded":false, "multiValueHeaders":{}, "statusCode":200}`, string(res))
+		assert.JSONEq(t, `{"body":"Hello World from Go\n", "cookies":null, "headers":{"Content-Type":"text/plain; charset=utf8", "Custom-Header":"custom-value"}, "isBase64Encoded":false, "multiValueHeaders":{}, "statusCode":200}`, string(res))
 	})
 
 	t.Run("should get error bay error parsing path on v1", func(t *testing.T) {

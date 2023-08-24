@@ -11,6 +11,7 @@ type options struct {
 	decorators      []types.Decorator
 	defaultHeaders  map[string]string
 	defaultErrorRes string
+	logger          Logger
 }
 
 type Option func(*options)
@@ -18,6 +19,12 @@ type Option func(*options)
 func WithHTTPHandler(h http.Handler) Option {
 	return func(o *options) {
 		o.httpHandler = h
+	}
+}
+
+func WithLogger(l Logger) Option {
+	return func(o *options) {
+		o.logger = l
 	}
 }
 
