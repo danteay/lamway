@@ -13,11 +13,16 @@ import (
 	"github.com/danteay/lamway/types"
 )
 
+type Logger interface {
+	Debugf(format string, args ...any)
+}
+
 // Gateway wrap a http handler to enable use as a lambda.Handler
 type Gateway[T any] struct {
 	handler         http.Handler
 	decorators      []types.Decorator
 	defaultResponse types.APIGatewayResponse
+	logger          Logger
 }
 
 // New creates a gateway using the provided http.Handler enabling use in existing aws-lambda-go
@@ -36,6 +41,7 @@ func New[T any](opts ...Option) *Gateway[T] {
 	return &Gateway[T]{
 		handler:    gatewayOpts.httpHandler,
 		decorators: gatewayOpts.decorators,
+		logger:     gatewayOpts.logger,
 		defaultResponse: types.APIGatewayResponse{
 			StatusCode: http.StatusInternalServerError,
 			Headers:    gatewayOpts.defaultHeaders,
@@ -80,11 +86,23 @@ func (gw *Gateway[T]) invoke(ctx context.Context, evt T) (map[string]any, error)
 
 	switch v := aux.(type) {
 	case events.APIGatewayProxyRequest:
+		gw.logDebug("[id:%s] v1 request: %+v", v.RequestContext.RequestID, aux)
+
 		res, err := gw.handlerV1(ctx, v)
-		return res.ToV1Map(), err
+		apiRes := res.ToV1Map()
+
+		gw.logDebug("[id:%s] v1 response: %+v", v.RequestContext.RequestID, apiRes)
+
+		return apiRes, err
 	case events.APIGatewayV2HTTPRequest:
+		gw.logDebug("[id:%s] v2 request: %+v", v.RequestContext.RequestID, aux)
+
 		res, err := gw.handlerV2(ctx, v)
-		return res.ToV2Map(), err
+		apiRes := res.ToV2Map()
+
+		gw.logDebug("[id:%s] v2 response: %+v", v.RequestContext.RequestID, apiRes)
+
+		return apiRes, err
 	default:
 		return gw.defaultResponse.ToV1Map(), ErrInvalidAPIGatewayRequest
 	}
@@ -114,4 +132,10 @@ func (gw *Gateway[T]) handlerV2(ctx context.Context, evt events.APIGatewayV2HTTP
 	gw.handler.ServeHTTP(w, r)
 
 	return w.End(), nil
+}
+
+func (gw *Gateway[T]) logDebug(format string, args ...any) {
+	if gw.logger != nil {
+		gw.logger.Debugf(format, args...)
+	}
 }

@@ -5,6 +5,7 @@
 *.so
 *.dylib
 bin/
+.nix/
 .serverless/
 
 # Test binary, built with `go test -c`
