@@ -1,3 +1,11 @@
+## v0.0.3 (2023-08-24)
+
+
+- chore: logger (#4)
+- * chore: add nix env
+
+* chore: add logger option to debug request and response
+
 ## v0.0.2 (2023-08-17)
 
 
