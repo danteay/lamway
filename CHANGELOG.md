@@ -1,3 +1,22 @@
+## v0.0.6 (2023-12-07)
+
+
+- chore(deps): bump goreleaser/goreleaser-action from 4 to 5 (#6)
+- Bumps [goreleaser/goreleaser-action](https://github.com/goreleaser/goreleaser-action) from 4 to 5.
+- [Release notes](https://github.com/goreleaser/goreleaser-action/releases)
+- [Commits](https://github.com/goreleaser/goreleaser-action/compare/v4...v5)
+
+---
+updated-dependencies:
+- dependency-name: goreleaser/goreleaser-action
+  dependency-type: direct:production
+  update-type: version-update:semver-major
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+Co-authored-by: Eduardo Aguilar Yépez <dante.aguilar41@gmail.com>
+
 ## v0.0.5 (2023-12-07)
 
 
