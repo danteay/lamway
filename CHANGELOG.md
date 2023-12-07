@@ -1,3 +1,21 @@
+## v0.0.7 (2023-12-07)
+
+
+- chore(deps): bump actions/setup-go from 4 to 5 (#7)
+- Bumps [actions/setup-go](https://github.com/actions/setup-go) from 4 to 5.
+- [Release notes](https://github.com/actions/setup-go/releases)
+- [Commits](https://github.com/actions/setup-go/compare/v4...v5)
+
+---
+updated-dependencies:
+- dependency-name: actions/setup-go
+  dependency-type: direct:production
+  update-type: version-update:semver-major
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
 ## v0.0.6 (2023-12-07)
 
 
