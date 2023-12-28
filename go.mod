@@ -3,7 +3,7 @@ module github.com/danteay/lamway
 go 1.20
 
 require (
-	github.com/aws/aws-lambda-go v1.41.0
+	github.com/aws/aws-lambda-go v1.43.0
 	github.com/magefile/mage v1.15.0
 	github.com/stretchr/testify v1.8.4
 )
