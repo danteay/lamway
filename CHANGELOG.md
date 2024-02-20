@@ -1,3 +1,21 @@
+## v0.0.10 (2024-02-20)
+
+
+- chore(deps): bump github.com/aws/aws-lambda-go from 1.45.0 to 1.46.0 (#13)
+- Bumps [github.com/aws/aws-lambda-go](https://github.com/aws/aws-lambda-go) from 1.45.0 to 1.46.0.
+- [Release notes](https://github.com/aws/aws-lambda-go/releases)
+- [Commits](https://github.com/aws/aws-lambda-go/compare/v1.45.0...v1.46.0)
+
+---
+updated-dependencies:
+- dependency-name: github.com/aws/aws-lambda-go
+  dependency-type: direct:production
+  update-type: version-update:semver-minor
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
 ## v0.0.9 (2024-01-19)
 
 
