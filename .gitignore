@@ -30,3 +30,6 @@ node_modules/
 # Test local files
 config.yml
 dist/
+
+## NIX
+flake.lock

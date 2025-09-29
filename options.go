@@ -8,6 +8,7 @@ import (
 
 type options struct {
 	httpHandler     http.Handler
+	handlerProvider HandlerProvider
 	decorators      []types.Decorator
 	defaultHeaders  map[string]string
 	defaultErrorRes string
@@ -57,5 +58,11 @@ func WithDefaultErrorResponse(res string) Option {
 		}
 
 		o.defaultErrorRes = res
+	}
+}
+
+func WithHandlerProvider(p HandlerProvider) Option {
+	return func(o *options) {
+		o.handlerProvider = p
 	}
 }

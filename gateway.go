@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -17,9 +18,13 @@ type Logger interface {
 	Debugf(format string, args ...any)
 }
 
-// Gateway wrap a http handler to enable use as a lambda.Handler
+type HandlerProvider func(ctx context.Context) http.Handler
+
+// Gateway wraps an http handler to enable use as a lambda.Handler
 type Gateway[T any] struct {
 	handler         http.Handler
+	handlerProvider HandlerProvider
+	hpOnce          *sync.Once
 	decorators      []types.Decorator
 	defaultResponse types.APIGatewayResponse
 	logger          Logger
@@ -39,9 +44,11 @@ func New[T any](opts ...Option) *Gateway[T] {
 	}
 
 	return &Gateway[T]{
-		handler:    gatewayOpts.httpHandler,
-		decorators: gatewayOpts.decorators,
-		logger:     gatewayOpts.logger,
+		handler:         gatewayOpts.httpHandler,
+		handlerProvider: gatewayOpts.handlerProvider,
+		decorators:      gatewayOpts.decorators,
+		logger:          gatewayOpts.logger,
+		hpOnce:          &sync.Once{},
 		defaultResponse: types.APIGatewayResponse{
 			StatusCode: http.StatusInternalServerError,
 			Headers:    gatewayOpts.defaultHeaders,
@@ -50,7 +57,7 @@ func New[T any](opts ...Option) *Gateway[T] {
 	}
 }
 
-// GetInvoker returns the function that will be invoked by the lambda.Start call in main function. This funtion will be
+// GetInvoker returns the function that will be invoked by the lambda.Start call in the main function. This function will be
 // decorated or not depending on the options passed to the New function.
 func (gw *Gateway[T]) GetInvoker() any {
 	var worker any = gw.invoke
@@ -116,6 +123,12 @@ func (gw *Gateway[T]) handlerV1(ctx context.Context, evt events.APIGatewayProxyR
 
 	w := response.New()
 
+	if gw.handlerProvider != nil {
+		gw.hpOnce.Do(func() {
+			gw.handler = gw.handlerProvider(ctx)
+		})
+	}
+
 	gw.handler.ServeHTTP(w, r)
 
 	return w.End(), nil
@@ -128,6 +141,12 @@ func (gw *Gateway[T]) handlerV2(ctx context.Context, evt events.APIGatewayV2HTTP
 	}
 
 	w := response.New()
+
+	if gw.handlerProvider != nil {
+		gw.hpOnce.Do(func() {
+			gw.handler = gw.handlerProvider(ctx)
+		})
+	}
 
 	gw.handler.ServeHTTP(w, r)
 
