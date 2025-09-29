@@ -48,6 +48,8 @@ jobs:
         uses: morphy2k/revive-action@v2
         with:
           config: revive.toml
+          exclude: |
+            examples/...
 
   commit_lint:
     runs-on: ubuntu-latest
