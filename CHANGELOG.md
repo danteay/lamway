@@ -1,3 +1,13 @@
+## v0.1.0 (2025-09-29)
+
+
+- feat: add handler provider option to propagate context (#16)
+- * feat: add handler provider option to propagate context
+- * deps: upgrade dependencies
+- * chore: save
+- * chore: save
+- * feat: remove package
+
 ## v0.0.10 (2024-02-20)
 
 
