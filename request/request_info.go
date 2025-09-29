@@ -11,8 +11,6 @@ import (
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
-
-	"github.com/danteay/lamway/types"
 )
 
 type requestInfo struct {
@@ -133,7 +131,7 @@ func (ri requestInfo) toRequest(ctx context.Context) (*http.Request, error) {
 	req.Header.Set("X-Stage", ri.stage)
 
 	// custom context values
-	req = req.WithContext(context.WithValue(ctx, types.RequestContextKey, ri.context))
+	req = req.WithContext(context.WithValue(ctx, ContextKey, ri.context))
 
 	// xray support
 	if traceID := ctx.Value("x-amzn-trace-id"); traceID != nil {

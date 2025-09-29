@@ -6,14 +6,12 @@ import (
 	"mime"
 	"net/http"
 	"strings"
-
-	"github.com/danteay/lamway/types"
 )
 
 // Writer implements the http.ResponseWriter interface
 // in order to support the API Gateway Lambda HTTP "protocol".
 type Writer struct {
-	out           types.APIGatewayResponse
+	out           APIGatewayResponse
 	buf           bytes.Buffer
 	header        http.Header
 	wroteHeader   bool
@@ -79,7 +77,7 @@ func (w *Writer) CloseNotify() <-chan bool {
 }
 
 // End the request.
-func (w *Writer) End() types.APIGatewayResponse {
+func (w *Writer) End() APIGatewayResponse {
 	w.out.IsBase64Encoded = isBinary(w.header)
 
 	if w.out.IsBase64Encoded {

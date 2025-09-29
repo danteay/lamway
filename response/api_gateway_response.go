@@ -1,4 +1,4 @@
-package types
+package response
 
 type APIGatewayResponse struct {
 	StatusCode        int                 `json:"statusCode"`

@@ -11,7 +11,6 @@ import (
 
 	"github.com/danteay/lamway/request"
 	"github.com/danteay/lamway/response"
-	"github.com/danteay/lamway/types"
 )
 
 type Logger interface {
@@ -20,13 +19,15 @@ type Logger interface {
 
 type HandlerProvider func(ctx context.Context) http.Handler
 
+type Decorator func(handler any) any
+
 // Gateway wraps an http handler to enable use as a lambda.Handler
 type Gateway[T any] struct {
 	handler         http.Handler
 	handlerProvider HandlerProvider
 	hpOnce          *sync.Once
-	decorators      []types.Decorator
-	defaultResponse types.APIGatewayResponse
+	decorators      []Decorator
+	defaultResponse response.APIGatewayResponse
 	logger          Logger
 }
 
@@ -49,7 +50,7 @@ func New[T any](opts ...Option) *Gateway[T] {
 		decorators:      gatewayOpts.decorators,
 		logger:          gatewayOpts.logger,
 		hpOnce:          &sync.Once{},
-		defaultResponse: types.APIGatewayResponse{
+		defaultResponse: response.APIGatewayResponse{
 			StatusCode: http.StatusInternalServerError,
 			Headers:    gatewayOpts.defaultHeaders,
 			Body:       gatewayOpts.defaultErrorRes,
@@ -71,6 +72,8 @@ func (gw *Gateway[T]) GetInvoker() any {
 	return worker
 }
 
+// Start initializes the Lambda function by invoking the AWS Lambda runtime with the Gateway's invoker function.
+// It ensures recovery from panics during execution and returns an error if a panic occurs or if initialization fails.
 func (gw *Gateway[T]) Start() (err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -115,7 +118,7 @@ func (gw *Gateway[T]) invoke(ctx context.Context, evt T) (map[string]any, error)
 	}
 }
 
-func (gw *Gateway[T]) handlerV1(ctx context.Context, evt events.APIGatewayProxyRequest) (types.APIGatewayResponse, error) {
+func (gw *Gateway[T]) handlerV1(ctx context.Context, evt events.APIGatewayProxyRequest) (response.APIGatewayResponse, error) {
 	r, err := request.NewV1(ctx, evt)
 	if err != nil {
 		return gw.defaultResponse, err
@@ -134,7 +137,7 @@ func (gw *Gateway[T]) handlerV1(ctx context.Context, evt events.APIGatewayProxyR
 	return w.End(), nil
 }
 
-func (gw *Gateway[T]) handlerV2(ctx context.Context, evt events.APIGatewayV2HTTPRequest) (types.APIGatewayResponse, error) {
+func (gw *Gateway[T]) handlerV2(ctx context.Context, evt events.APIGatewayV2HTTPRequest) (response.APIGatewayResponse, error) {
 	r, err := request.NewV2(ctx, evt)
 	if err != nil {
 		return gw.defaultResponse, err
