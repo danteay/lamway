@@ -17,13 +17,13 @@
                     default = pkgs.mkShell {
                         name = "draftea-dev-env";
 
-                        buildInputs = [
-                            pkgs.go
-                            pkgs.go-mockery
-                            pkgs.mage
-                            pkgs.revive
-                            pkgs.pre-commit
-                            pkgs.commitizen
+                        buildInputs = with pkgs; [
+                            go
+                            go-mockery
+                            go-task
+                            revive
+                            pre-commit
+                            commitizen
                         ];
 
                         shellHook = ''
