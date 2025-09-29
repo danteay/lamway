@@ -1,0 +1,57 @@
+version: '3'
+
+# Migration of mage tasks to go-task
+# Available tasks:
+# - task install      -> go mod download
+# - task pre-commit   -> install pre-commit hooks
+# - task vet          -> go vet ./...
+# - task lint         -> revive checks (depends on vet)
+# - task format       -> format code with gofmt (simplified from goimports-reviser)
+# - task test         -> run unit tests with race and coverage
+# - task cover        -> open HTML coverage report (depends on test)
+
+dotenv: []
+
+tasks:
+  default:
+    desc: Run tests
+    cmds:
+      - task: test
+
+  install:
+    desc: Download Go module dependencies
+    cmds:
+      - go mod download
+
+  pre-commit:
+    desc: Install pre-commit hooks (including commit-msg hook)
+    cmds:
+      - pre-commit install --hook-type commit-msg
+      - pre-commit install
+
+  vet:
+    desc: Run go vet on all packages
+    cmds:
+      - go vet ./...
+
+  lint:
+    desc: Run revive linter (depends on vet)
+    deps: [vet]
+    cmds:
+      - revive -config=revive.toml -formatter=friendly -exclude=examples/... ./...
+
+  format:
+    desc: Format code using goimports-reviser
+    cmds:
+      - goimports-reviser -format ./...
+
+  test:
+    desc: Run unit tests with race detector and coverage
+    cmds:
+      - go test -v -race ./... -cover -coverprofile=coverage.out
+
+  cover:
+    desc: Open HTML coverage report (runs tests first)
+    deps: [test]
+    cmds:
+      - go tool cover -html coverage.out

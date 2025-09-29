@@ -11,12 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
-          go-version: 1.20.x
+          go-version: 1.24
 
       - name: Install dependencies
         run: |
@@ -31,40 +31,44 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
-          go-version: 1.20.x
+          go-version: 1.24
 
       - name: Install dependencies
-        run: go mod download
+        run: |
+          go mod download
+          go install github.com/mgechev/revive@latest
 
       - name: Go vet
         run: go vet ./...
 
       - name: Run Linter
-        uses: morphy2k/revive-action@v2
-        with:
-          config: revive.toml
+        run: |
+          revive -config=revive.toml -formatter=friendly -exclude=examples/... ./...
 
   commit_lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           token: '${{ secrets.ACCESS_TOKEN }}'
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install Commitizen
         run: pip install -U commitizen
 
       - name: Check commits
         run: cz check --rev-range origin/main..HEAD
+
+      - name: Check PR title
+        run: cz check -m "${{ github.event.pull_request.title }}"

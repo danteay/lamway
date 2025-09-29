@@ -4,24 +4,30 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 
 	"github.com/danteay/lamway/request"
 	"github.com/danteay/lamway/response"
-	"github.com/danteay/lamway/types"
 )
 
 type Logger interface {
 	Debugf(format string, args ...any)
 }
 
-// Gateway wrap a http handler to enable use as a lambda.Handler
+type HandlerProvider func(ctx context.Context) http.Handler
+
+type Decorator func(handler any) any
+
+// Gateway wraps an http handler to enable use as a lambda.Handler
 type Gateway[T any] struct {
 	handler         http.Handler
-	decorators      []types.Decorator
-	defaultResponse types.APIGatewayResponse
+	handlerProvider HandlerProvider
+	hpOnce          *sync.Once
+	decorators      []Decorator
+	defaultResponse response.APIGatewayResponse
 	logger          Logger
 }
 
@@ -39,10 +45,12 @@ func New[T any](opts ...Option) *Gateway[T] {
 	}
 
 	return &Gateway[T]{
-		handler:    gatewayOpts.httpHandler,
-		decorators: gatewayOpts.decorators,
-		logger:     gatewayOpts.logger,
-		defaultResponse: types.APIGatewayResponse{
+		handler:         gatewayOpts.httpHandler,
+		handlerProvider: gatewayOpts.handlerProvider,
+		decorators:      gatewayOpts.decorators,
+		logger:          gatewayOpts.logger,
+		hpOnce:          &sync.Once{},
+		defaultResponse: response.APIGatewayResponse{
 			StatusCode: http.StatusInternalServerError,
 			Headers:    gatewayOpts.defaultHeaders,
 			Body:       gatewayOpts.defaultErrorRes,
@@ -50,7 +58,7 @@ func New[T any](opts ...Option) *Gateway[T] {
 	}
 }
 
-// GetInvoker returns the function that will be invoked by the lambda.Start call in main function. This funtion will be
+// GetInvoker returns the function that will be invoked by the lambda.Start call in the main function. This function will be
 // decorated or not depending on the options passed to the New function.
 func (gw *Gateway[T]) GetInvoker() any {
 	var worker any = gw.invoke
@@ -64,6 +72,8 @@ func (gw *Gateway[T]) GetInvoker() any {
 	return worker
 }
 
+// Start initializes the Lambda function by invoking the AWS Lambda runtime with the Gateway's invoker function.
+// It ensures recovery from panics during execution and returns an error if a panic occurs or if initialization fails.
 func (gw *Gateway[T]) Start() (err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -108,7 +118,7 @@ func (gw *Gateway[T]) invoke(ctx context.Context, evt T) (map[string]any, error)
 	}
 }
 
-func (gw *Gateway[T]) handlerV1(ctx context.Context, evt events.APIGatewayProxyRequest) (types.APIGatewayResponse, error) {
+func (gw *Gateway[T]) handlerV1(ctx context.Context, evt events.APIGatewayProxyRequest) (response.APIGatewayResponse, error) {
 	r, err := request.NewV1(ctx, evt)
 	if err != nil {
 		return gw.defaultResponse, err
@@ -116,18 +126,30 @@ func (gw *Gateway[T]) handlerV1(ctx context.Context, evt events.APIGatewayProxyR
 
 	w := response.New()
 
+	if gw.handlerProvider != nil {
+		gw.hpOnce.Do(func() {
+			gw.handler = gw.handlerProvider(ctx)
+		})
+	}
+
 	gw.handler.ServeHTTP(w, r)
 
 	return w.End(), nil
 }
 
-func (gw *Gateway[T]) handlerV2(ctx context.Context, evt events.APIGatewayV2HTTPRequest) (types.APIGatewayResponse, error) {
+func (gw *Gateway[T]) handlerV2(ctx context.Context, evt events.APIGatewayV2HTTPRequest) (response.APIGatewayResponse, error) {
 	r, err := request.NewV2(ctx, evt)
 	if err != nil {
 		return gw.defaultResponse, err
 	}
 
 	w := response.New()
+
+	if gw.handlerProvider != nil {
+		gw.hpOnce.Do(func() {
+			gw.handler = gw.handlerProvider(ctx)
+		})
+	}
 
 	gw.handler.ServeHTTP(w, r)
 

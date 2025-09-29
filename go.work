@@ -1,8 +1,0 @@
-go 1.20
-
-use (
-	examples/gin
-	examples/api-gateway-v1
-	examples/api-gateway-v2
-	.
-)
